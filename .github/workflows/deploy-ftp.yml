@@ -1,0 +1,27 @@
+name: Build & FTP deploy to Plesk
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build   # создаст папку out/
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_SERVER }}        # напр. ftp.artproject.kz или srv-plesk12.ps.kz
+          username: ${{ secrets.FTP_USERNAME }}    # логин от FTP из Plesk
+          password: ${{ secrets.FTP_PASSWORD }}    # пароль от FTP
+          port: ${{ secrets.FTP_PORT || 21 }}
+          protocol: ftp                            # можно 'ftps' если доступен
+          local-dir: out/
+          server-dir: httpdocs/
+          dangerous-clean-slate: true              # очищать httpdocs перед заливкой
